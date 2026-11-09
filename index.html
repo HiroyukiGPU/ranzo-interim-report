@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RANZO 中間報告</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a; --fg:#ffffff; --muted:#8a8a8a; --dim:#4a4a4a; --line:#262626;
+    --yellow:#ffe500; --magenta:#ff1fa8; --silver:#d9d9d9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:#000;color:var(--fg);font-family:"Noto Sans JP",system-ui,sans-serif;overflow:hidden}
+  .stage{position:fixed;inset:0;display:grid;place-items:center}
+  .slide{position:absolute;width:1920px;height:1080px;background:var(--bg);overflow:hidden;
+    padding:120px 128px;display:none;transform-origin:center center}
+  .slide.active{display:block}
+  .slide::before{content:"";position:absolute;right:-260px;top:-300px;width:900px;height:900px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,229,0,.10),transparent 65%);pointer-events:none}
+  .slide::after{content:"";position:absolute;left:-300px;bottom:-360px;width:900px;height:900px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,31,168,.07),transparent 65%);pointer-events:none}
+
+  .pill{display:inline-block;border:2px solid var(--yellow);color:var(--yellow);border-radius:999px;
+    padding:8px 26px;font-weight:700;font-size:24px;letter-spacing:.02em}
+  .eyebrow{display:flex;align-items:center;gap:24px;color:var(--muted);font-size:22px;letter-spacing:.18em;font-weight:500}
+  .eyebrow::before{content:"";width:64px;height:5px;background:var(--yellow);border-radius:3px}
+  h1.cover{font-weight:900;font-size:150px;line-height:1.08;margin-top:56px;letter-spacing:-.01em}
+  h2{font-weight:900;font-size:84px;line-height:1.15;margin-top:28px}
+  .y{color:var(--yellow)} .m{color:var(--magenta)} .s{color:var(--silver)}
+  .lead{color:var(--muted);font-size:40px;margin-top:36px;font-weight:500}
+  .date{position:absolute;right:128px;bottom:64px;color:var(--dim);font-size:22px;letter-spacing:.12em}
+  .pageno{position:absolute;left:128px;bottom:64px;color:var(--dim);font-size:22px;letter-spacing:.12em}
+
+  .members{display:flex;gap:64px;margin-top:72px;font-size:40px;font-weight:700}
+  .members small{display:block;font-size:20px;color:var(--muted);font-weight:500;letter-spacing:.1em;margin-top:6px}
+
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:32px;margin-top:80px}
+  .kpi{border-top:4px solid var(--line);padding-top:28px}
+  .kpi .v{font-size:150px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+  .kpi .v span{font-size:44px;margin-left:8px;font-weight:700}
+  .kpi .l{font-size:28px;color:var(--muted);margin-top:18px;font-weight:500}
+  .kpi.total{border-color:var(--yellow)}
+  .kpi.suzuki{border-color:var(--yellow)} .kpi.nozaki{border-color:var(--magenta)} .kpi.miyadera{border-color:var(--silver)}
+  .share{display:flex;height:56px;margin-top:88px;border-radius:12px;overflow:hidden;gap:4px}
+  .share div{display:flex;align-items:center;padding-left:20px;font-size:22px;font-weight:700;color:#0a0a0a}
+  .note{position:absolute;left:128px;right:128px;bottom:120px;color:var(--muted);font-size:22px;line-height:1.7}
+
+  /* chart */
+  .chartwrap{display:grid;grid-template-columns:1fr 400px;gap:64px;margin-top:40px;align-items:start}
+  .legend{display:flex;gap:40px;font-size:26px;font-weight:700;margin-top:28px}
+  .legend i{display:inline-block;width:22px;height:22px;border-radius:5px;margin-right:12px;vertical-align:-3px}
+  svg text{font-family:"Noto Sans JP",sans-serif}
+  table.tbl{width:100%;border-collapse:collapse;font-size:24px;font-variant-numeric:tabular-nums}
+  .tbl th,.tbl td{padding:11px 8px;text-align:right;border-bottom:1px solid var(--line)}
+  .tbl th:first-child,.tbl td:first-child{text-align:left;color:var(--muted)}
+  .tbl thead th{font-size:20px;color:var(--muted);font-weight:500}
+  .tbl tfoot td{font-weight:900;border-top:2px solid #555;border-bottom:none;color:var(--fg)}
+
+  /* achievement */
+  .ach{display:grid;grid-template-columns:1.25fr 1fr;gap:72px;margin-top:64px}
+  .hero{border:2px solid var(--yellow);border-radius:28px;padding:56px 56px 52px;position:relative;background:rgba(255,229,0,.03)}
+  .hero .tag{font-size:24px;color:var(--yellow);font-weight:700;letter-spacing:.14em}
+  .hero .big{font-size:76px;font-weight:900;line-height:1.2;margin-top:20px}
+  .hero p{font-size:30px;color:#cfcfcf;line-height:1.7;margin-top:28px}
+  .side{display:flex;flex-direction:column;gap:28px}
+  .item{border-left:5px solid var(--line);padding:6px 0 6px 32px}
+  .item b{display:block;font-size:56px;font-weight:900;line-height:1.1}
+  .item span{font-size:26px;color:var(--muted)}
+
+  /* blank */
+  .blank{margin-top:56px;display:grid;grid-template-columns:1fr 1fr;gap:40px;height:500px}
+  .blank .box{border:3px dashed #3a3a3a;border-radius:28px;padding:40px 44px;position:relative}
+  .blank .box .h{font-size:26px;color:var(--muted);font-weight:700;letter-spacing:.12em}
+  .blank .box .ph{position:absolute;inset:0;display:grid;place-items:center;color:#333;font-size:64px;font-weight:900;letter-spacing:.2em;pointer-events:none}
+  .blank .box[contenteditable]:focus{outline:none;border-color:var(--yellow)}
+  .blank .box .body{font-size:30px;line-height:1.7;margin-top:20px;color:#e6e6e6;min-height:320px;outline:none;position:relative;z-index:1}
+  .blank .box .body:not(:empty) + .ph{display:none}
+  .blank .box .body .hl{font-size:44px;font-weight:900;color:var(--yellow)}
+  .blank .box .body b{font-weight:900;font-size:40px}
+  .blank .box .body .sub{display:block;margin-top:24px;font-size:26px;color:var(--muted)}
+  .stat-mini{display:flex;gap:48px;margin-top:28px;font-size:28px;color:var(--muted)}
+  .stat-mini b{font-size:44px;font-weight:900;color:var(--fg);margin-left:10px}
+
+  .nav{position:fixed;right:20px;bottom:16px;color:#555;font:14px system-ui;z-index:10;user-select:none}
+  @media print{
+    html,body{overflow:visible;background:var(--bg)}
+    .stage{position:static;display:block}
+    .slide{display:block!important;position:relative;transform:none!important;page-break-after:always}
+    .nav{display:none}
+    @page{size:1920px 1080px;margin:0}
+  }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <!-- 1. Cover -->
+  <section class="slide">
+    <span class="pill">2026 — 中間報告</span>
+    <h1 class="cover">RANZO<br><span class="y">Project</span></h1>
+    <p class="lead">一日一個アプリを作る、3人の高校生チーム ／ 2026年4月〜11月の進捗</p>
+    <div class="members">
+      <div><span class="y">鈴木 陽向</span><small>SUZUKI HINATA</small></div>
+      <div><span class="m">野﨑 仁心</span><small>NOZAKI JINSHIN</small></div>
+      <div><span class="s">宮寺 宏幸</span><small>MIYADERA HIROYUKI</small></div>
+    </div>
+    <div class="date">2026.11</div>
+  </section>
+
+  <!-- 2. Summary -->
+  <section class="slide">
+    <div class="eyebrow">SUMMARY</div>
+    <h2>作ったアプリ、<span class="y">合計 <span id="grandTotal"></span> 個。</span></h2>
+    <div class="kpis">
+      <div class="kpi total"><div class="v y"><span id="kTotal" style="font-size:inherit;margin:0"></span><span>個</span></div><div class="l">チーム合計</div></div>
+      <div class="kpi suzuki"><div class="v" id="kS"></div><div class="l">鈴木 陽向</div></div>
+      <div class="kpi nozaki"><div class="v" id="kN"></div><div class="l">野﨑 仁心</div></div>
+      <div class="kpi miyadera"><div class="v" id="kM"></div><div class="l">宮寺 宏幸</div></div>
+    </div>
+    <div class="share" id="share"></div>
+    <p class="note">集計方法：鈴木＝ranzo 管理ダッシュボード（admin/apps.js）登録数。野﨑・宮寺＝Notion「アプリデータベース」で状態が「公開中」かつリリース日のあるもの。<br>アイデア段階の「ストック」は含まない（Notion上のストック：鈴木 62 ／ 野﨑 22 ／ 宮寺 51）。</p>
+    <div class="pageno">02</div><div class="date">2026.11</div>
+  </section>
+
+  <!-- 3. Monthly chart -->
+  <section class="slide">
+    <div class="eyebrow">MONTHLY OUTPUT</div>
+    <h2 style="font-size:72px">月別アプリ作成数 <span class="muted" style="color:var(--muted);font-size:40px;font-weight:700">（メンバー別）</span></h2>
+    <div class="legend">
+      <div><i style="background:var(--yellow)"></i>鈴木 陽向</div>
+      <div><i style="background:var(--magenta)"></i>野﨑 仁心</div>
+      <div><i style="background:var(--silver)"></i>宮寺 宏幸</div>
+    </div>
+    <div class="chartwrap">
+      <svg id="chart" viewBox="0 0 1180 640" width="1180" height="640" role="img" aria-label="月別・メンバー別のアプリ作成数の棒グラフ"></svg>
+      <table class="tbl" id="tbl"></table>
+    </div>
+    <div class="pageno">03</div><div class="date">2026.11</div>
+  </section>
+
+  <!-- 4. Suzuki -->
+  <section class="slide">
+    <div class="eyebrow">KEY RESULTS — 鈴木 陽向</div>
+    <h2><span class="y">鈴木 陽向</span>の主要な成果</h2>
+    <div class="stat-mini"><div>作成アプリ<b id="sTotal"></b></div><div>月間最多<b id="sPeak"></b></div></div>
+    <div class="blank">
+      <div class="box"><div class="h">成果・トピック</div><div class="body" contenteditable="true"><span class="hl">GENIAC Prize</span>（LLM開発コンペ）に<br>メンバーとして<b class="y">通過</b>し、<b class="y">班長</b>を担当。<br><span class="sub">ranzo 管理ダッシュボードに<em id="sTotal2" style="font-style:normal"></em>個のアプリを登録し、ranzo.vercel.app で順次公開。</span></div><div class="ph">BLANK</div></div>
+      <div class="box"><div class="h">学び・次の目標</div><div class="body" contenteditable="true"></div><div class="ph">BLANK</div></div>
+    </div>
+    <div class="pageno">04</div><div class="date">2026.11</div>
+  </section>
+
+  <!-- 5. Nozaki (blank) -->
+  <section class="slide">
+    <div class="eyebrow">KEY RESULTS — 野﨑 仁心</div>
+    <h2><span class="m">野﨑 仁心</span>の主要な成果</h2>
+    <div class="stat-mini"><div>公開アプリ<b id="nTotal"></b></div><div>月間最多<b id="nPeak"></b></div></div>
+    <div class="blank">
+      <div class="box"><div class="h">成果・トピック</div><div class="body" contenteditable="true"></div><div class="ph">BLANK</div></div>
+      <div class="box"><div class="h">学び・次の目標</div><div class="body" contenteditable="true"></div><div class="ph">BLANK</div></div>
+    </div>
+    <div class="pageno">05</div><div class="date">2026.11</div>
+  </section>
+
+  <!-- 6. Miyadera (blank) -->
+  <section class="slide">
+    <div class="eyebrow">KEY RESULTS — 宮寺 宏幸</div>
+    <h2><span class="s">宮寺 宏幸</span>の主要な成果</h2>
+    <div class="stat-mini"><div>公開アプリ<b id="mTotal"></b></div><div>月間最多<b id="mPeak"></b></div></div>
+    <div class="blank">
+      <div class="box"><div class="h">成果・トピック</div><div class="body" contenteditable="true"></div><div class="ph">BLANK</div></div>
+      <div class="box"><div class="h">学び・次の目標</div><div class="body" contenteditable="true"></div><div class="ph">BLANK</div></div>
+    </div>
+    <div class="pageno">06</div><div class="date">2026.11</div>
+  </section>
+
+  <!-- 7. End -->
+  <section class="slide" style="display:none">
+    <span class="pill">2026 — 中間報告</span>
+    <h1 class="cover">Keep<br><span class="y">Shipping.</span></h1>
+    <p class="lead">後半も、一日一個。</p>
+    <div class="date">2026.11</div>
+  </section>
+</div>
+<div class="nav" id="nav"></div>
+
+<script>
+// ---- データ（2026-11-08 時点）----
+// 鈴木: admin/apps.js 登録 179 件を各アプリのフォルダ作成日で月別集計（3月作成の1件は4月に含む）
+// 野﨑・宮寺: Notion アプリデータベース「公開中」のリリース日で月別集計
+const MONTHS = ["4月","5月","6月","7月","8月","9月","10月","11月"];
+const DATA = [
+  {name:"鈴木 陽向", color:"#ffe500", v:[1,0,18,40,30,0,30,60]},
+  {name:"野﨑 仁心", color:"#ff1fa8", v:[0,5,29,31,31,1,26,0]},
+  {name:"宮寺 宏幸", color:"#d9d9d9", v:[0,0,30,32,31,30,31,11]},
+];
+const sum=a=>a.reduce((x,y)=>x+y,0);
+const totals=DATA.map(d=>sum(d.v)), grand=sum(totals);
+const $=id=>document.getElementById(id);
+$("grandTotal").textContent=grand; $("kTotal").textContent=grand;
+$("kS").textContent=totals[0]; $("kN").textContent=totals[1]; $("kM").textContent=totals[2];
+$("sTotal").textContent=totals[0]+" 個"; $("sTotal2").textContent=totals[0];
+$("share").innerHTML=DATA.map((d,i)=>`<div style="flex:${totals[i]};background:${d.color}">${d.name.split(" ")[0]} ${Math.round(totals[i]/grand*100)}%</div>`).join("");
+$("sPeak").textContent=Math.max(...DATA[0].v)+" 個";
+$("nTotal").textContent=totals[1]+" 個"; $("nPeak").textContent=Math.max(...DATA[1].v)+" 個";
+$("mTotal").textContent=totals[2]+" 個"; $("mPeak").textContent=Math.max(...DATA[2].v)+" 個";
+
+// ---- グラフ（グループ棒）----
+(function(){
+  const svg=$("chart"), W=1180,H=640, L=70,R=10,T=30,B=70;
+  const pw=W-L-R, ph=H-T-B, max=Math.ceil(Math.max(...DATA.flatMap(d=>d.v))/10)*10+10, ns="http://www.w3.org/2000/svg";
+  const el=(t,a,txt)=>{const e=document.createElementNS(ns,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e};
+  for(let g=0;g<=max;g+=10){
+    const y=T+ph-g/max*ph;
+    el("line",{x1:L,x2:W-R,y1:y,y2:y,stroke:g?"#222":"#555","stroke-width":g?1:2});
+    el("text",{x:L-16,y:y+8,"text-anchor":"end",fill:"#777","font-size":22},g);
+  }
+  const gw=pw/MONTHS.length, bw=30, gap=6, groupW=DATA.length*bw+(DATA.length-1)*gap;
+  MONTHS.forEach((m,i)=>{
+    const x0=L+i*gw+(gw-groupW)/2;
+    DATA.forEach((d,j)=>{
+      const v=d.v[i]; const h=v/max*ph; const x=x0+j*(bw+gap), y=T+ph-h;
+      if(v>0){
+        el("rect",{x,y,width:bw,height:h,rx:5,fill:d.color});
+        el("text",{x:x+bw/2,y:y-10,"text-anchor":"middle",fill:"#bbb","font-size":18,"font-weight":700},v);
+      }
+    });
+    el("text",{x:L+i*gw+gw/2,y:H-B+42,"text-anchor":"middle",fill:"#ddd","font-size":26,"font-weight":700},m);
+  });
+})();
+
+// ---- 表 ----
+(function(){
+  let h="<thead><tr><th>月</th>"+DATA.map(d=>`<th style="color:${d.color}">${d.name.split(" ")[0]}</th>`).join("")+"<th>計</th></tr></thead><tbody>";
+  MONTHS.forEach((m,i)=>{h+=`<tr><td>${m}</td>`+DATA.map(d=>`<td>${d.v[i]||"–"}</td>`).join("")+`<td>${sum(DATA.map(d=>d.v[i]))}</td></tr>`});
+  h+=`</tbody><tfoot><tr><td>合計</td>${totals.map(t=>`<td>${t}</td>`).join("")}<td style="color:var(--yellow)">${grand}</td></tr></tfoot>`;
+  $("tbl").innerHTML=h;
+})();
+
+// ---- スライド制御 ----
+const slides=[...document.querySelectorAll(".slide")];
+slides.forEach(s=>s.style.removeProperty("display"));
+let cur=Math.max(0,Math.min(slides.length-1,(parseInt(location.hash.slice(1))||1)-1));
+function fit(){const s=Math.min(innerWidth/1920,innerHeight/1080);slides.forEach(x=>x.style.transform=`scale(${s})`)}
+function show(i){cur=Math.max(0,Math.min(slides.length-1,i));slides.forEach((s,k)=>s.classList.toggle("active",k===cur));
+  $("nav").textContent=`${cur+1} / ${slides.length}  ←→`;history.replaceState(null,"","#"+(cur+1))}
+addEventListener("keydown",e=>{
+  if(document.activeElement&&document.activeElement.isContentEditable)return;
+  if(["ArrowRight","PageDown"," ","Enter"].includes(e.key)){e.preventDefault();show(cur+1)}
+  if(["ArrowLeft","PageUp","Backspace"].includes(e.key)){e.preventDefault();show(cur-1)}
+  if(e.key==="Home")show(0); if(e.key==="End")show(slides.length-1);
+});
+$("stage").addEventListener("click",e=>{if(e.target.closest("[contenteditable]"))return;show(e.clientX>innerWidth/2?cur+1:cur-1)});
+addEventListener("resize",fit); fit(); show(cur);
+</script>
+</body>
+</html>
